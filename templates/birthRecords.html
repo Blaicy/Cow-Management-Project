@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <form action="{% url 'birthRecords' %}" method="post">
+      {% csrf_token %}
+      <input type="text" name="calf" id="Calf" />
+      <label for="Calf">Calf</label>
+
+      <select name="mother" id="Mother">
+        {% for cow in cows %} {% if cow.gender == 'female' %}
+        <option value="{{cow.id}}">{{ cow.name}}</option>
+        {% endif %} {% endfor %}
+      </select>
+
+      <label for="Mother">Mother</label>
+      <input type="text" name="tag_Number" id="Tag number" />
+      <label for="Tag number">Tag number</label>
+      <input type="number" name="weight" id="Weight" />
+      <label for="Weight">Weight</label>
+      <select name="gender" id="Gender">
+        <option value="male">bull</option>
+        <option value="female">heifer</option>
+      </select>
+      <label for="Gender">Gender</label>
+      <select name="Breed" id="breed">
+        {% for breed in breeds %}
+        <option value="{{breed.id}}">{{ breed.breed_name}}</option>
+        {% endfor %}
+      </select>
+      <label for="breed">breed</label>
+      <input type="date" name="date" id="Date of Birth" />
+      <label for="Date of Birth">Date of Birth</label>
+      <input type="submit" name="submit" />
+    </form>
+  </body>
+</html>
