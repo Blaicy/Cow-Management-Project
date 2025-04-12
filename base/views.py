@@ -1,9 +1,9 @@
 from django.shortcuts import render,redirect
-from .models import (Cow, Breed, Breed_Table, Milking_Record, Feeding_Record, Feed, Milk_Sales, Feed_Purchases,
-                      Immunisation_Records, Veterinary_Care,Birth_Records,Funfacts,Manure_Sales, MonthlyReport)
+from .models import (Cow, Breed, Breed_Table, Milking_Record, Feeding_Record, Feed, Milk_Sales, Feed_Purchases,Reproduction,
+                      Veterinary_Care,Birth_Records,Funfacts,Manure_Sales, MonthlyReport)
 from .serializers import (CowSerializer, BreedSerializer, Breed_TableSerializer, Milking_RecordSerializer, Feeding_RecordSerializer,
-    Feed_PurchasesSerializer, Milk_SalesSerializer, FeedSerializer, Immunisation_RecordsSerializer, Veterinary_CareSerializer, 
-    Birth_RecordsSerializer, MonthlyReportSerializer, FunfactsSerializer, Manure_SalesSerializer)
+    Feed_PurchasesSerializer, Milk_SalesSerializer, FeedSerializer,Veterinary_CareSerializer, 
+    Birth_RecordsSerializer, MonthlyReportSerializer, FunfactsSerializer, Manure_SalesSerializer,ReproductionSerializer)
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.response import Response
@@ -57,11 +57,6 @@ def birthRecords(request):
 class ListCreateBirth_Records(generics.ListCreateAPIView):
     queryset = Birth_Records.objects.all()
     serializer_class = Birth_RecordsSerializer
-    
-class ListCreateImmunisation_Records(generics.ListCreateAPIView):
-    queryset = Immunisation_Records.objects.all()
-    serializer_class = Immunisation_RecordsSerializer
-
 
 class ListCreateVeterinary_Care(generics.ListCreateAPIView):
     queryset = Veterinary_Care.objects.all()
@@ -80,7 +75,6 @@ class ListCreateMilk_Sales(generics.ListCreateAPIView):
 class DestroyAPIViewMilk_Sales(generics.DestroyAPIView):
     queryset = Milk_Sales.objects.all()
     serializer_class = Milk_SalesSerializer
-
 
 class ListCreateFeeding_Record(generics.ListCreateAPIView):
     queryset = Feeding_Record.objects.all()
@@ -101,6 +95,19 @@ class ListCreateMilking_Record(generics.ListCreateAPIView):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+class ReproductionListCreateAPIView(generics.ListCreateAPIView):
+    queryset = Reproduction.objects.all()
+    serializer_class = ReproductionSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        if serializer.validated_data['cow'].gender == 'male':
+            return Response('bull cannot reproduce!', status=status.HTTP_409_CONFLICT)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 class ListCreateBreed(generics.ListCreateAPIView):
     queryset = Breed.objects.all()

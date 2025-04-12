@@ -1,9 +1,26 @@
-from .models import (Cow, Breed, Breed_Table, Milking_Record, Feeding_Record, Feed, Feed_Purchases,Funfacts,
-                      Milk_Sales,Immunisation_Records, Veterinary_Care, Birth_Records,Manure_Sales,MonthlyReport)
+from .models import (Cow, Breed, Breed_Table, Milking_Record, Feeding_Record, Feed, Feed_Purchases,Funfacts,Reproduction,
+                      Milk_Sales, Veterinary_Care, Birth_Records,Manure_Sales,MonthlyReport)
 
 from rest_framework import serializers
-from datetime import datetime
+from datetime import timedelta,date
+from django.shortcuts import get_object_or_404,redirect
+from django.db.models import Sum, F, ExpressionWrapper,DecimalField
 
+class ReproductionSerializer(serializers.ModelSerializer):
+    mating_records = serializers.SerializerMethodField() 
+    estimated_delivery = serializers.SerializerMethodField(read_only=True) 
+    class Meta:
+        model = Reproduction
+        fields = ['cow',
+                  'mating_records',
+                  'estimated_delivery']
+
+    def mating_records(self,obj):
+        return obj.mating_records.create()
+    def get_estimated_delivery(self,obj):
+        if obj.mating_records:
+            return obj.mating_records + timedelta(days=283)
+        return None
 
 class FeedSerializer(serializers.ModelSerializer):
     class Meta:
@@ -31,14 +48,27 @@ class Breed_TableSerializer(serializers.ModelSerializer):
 
 class Manure_SalesSerializer(serializers.ModelSerializer):
     manure_sales = serializers.SerializerMethodField()
+    monthly_manure_sales = serializers.SerializerMethodField()
     class Meta:
-        unique_together = ['month']
         model = Manure_Sales
-        fields = ['quantity','cost','manure_sales']
+        fields = ['quantity','price_per_kg','manure_sales','monthly_manure_sales']
 
     def get_manure_sales(self,obj):
-        manure_sales = obj.quantity*obj.cost
+        manure_sales = obj.quantity*obj.price_per_kg
         return manure_sales
+    def get_monthly_manure_sales(self,obj):
+        year = obj.date.year
+        month = obj.date.month
+        start_date = date(year, month, 1)
+        if month == 12:
+            end_date = date(year + 1,1,1)
+        else:
+            end_date = date(year, month + 1,1)
+        sales = Manure_Sales.objects.filter(date__gte=start_date, date__lt=end_date)
+        total = sales.aggregate(total_sales=Sum(ExpressionWrapper(F('quantity') * F('price_per_kg'),
+                                                                  output_field=DecimalField())))
+        return (total['total_sales'] or 0,year-month)
+
 
 class FunfactsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -47,138 +77,115 @@ class FunfactsSerializer(serializers.ModelSerializer):
 
 class Milk_SalesSerializer(serializers.ModelSerializer):
     milk_sales = serializers.SerializerMethodField()
-    monthly_sales = serializers.SerializerMethodField()
+    monthly_milk_sales = serializers.SerializerMethodField()
     class Meta:
-        unique_together = ['month']
         model = Milk_Sales
-        fields = ['litres','cost','milk_sales','monthly_sales']
+        fields = ['litres','price_per_litre','milk_sales','monthly_milk_sales']
 
     def get_milk_sales(self,obj):
-        milk_sales = obj.litres*obj.cost
+        milk_sales = obj.litres*obj.price_per_litre
         return milk_sales
     
-    def get_monthly_sales(self,obj):
-        monthly_sales = obj.litres*obj.cost*30
-        return monthly_sales
-
-    # def get_milk_sales(self,obj):
-    #     milk_sales = 0
-    #     try:
-    #         milksales = Milk_Sales.objects.all()
-    #         for milksale in milksales:
-    #             milk_sales = milksale.litres*milksale.cost
-    #         return milk_sales
-    #     except:
-    #         return milk_sales
-
+    def get_monthly_milk_sales(self,obj):
+        year = obj.date.year
+        month = obj.date.month
+        start_date = date(year, month, 1)
+        if month == 12:
+            end_date = date(year + 1,1,1)
+        else:
+            end_date = date(year, month + 1,1)
+        sales = Milk_Sales.objects.filter(date__gte=start_date, date__lt=end_date)
+        total = sales.aggregate(total_sales=Sum(ExpressionWrapper(F('litres') * F('price_per_litre'),
+                                                                  output_field=DecimalField())))
+        
+        return (total['total_sales'] or 0,year,month)
+    
 
 class Milking_RecordSerializer(serializers.ModelSerializer):
     class Meta:
         model = Milking_Record
-        exclude = ['date']
+        fields = '__all__'
 
 
 class Feeding_RecordSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feeding_Record
-        exclude = ['date']
+        fields = '__all__'
 
 
 class Feed_PurchasesSerializer(serializers.ModelSerializer):
     feed_purchases = serializers.SerializerMethodField()
+    monthly_feed_purchases = serializers.SerializerMethodField()
     class Meta:
         model = Feed_Purchases
-        fields = ['quantity','feed_type','cost','feed_purchases']
+        fields = ['quantity','feed_type','price_per_kg','feed_purchases','monthly_feed_purchases']
 
     def get_feed_purchases(self,obj):
-        feed_purchases = obj.quantity*obj.cost
+        feed_purchases = obj.quantity*obj.price_per_kg
         return feed_purchases
-
-class Immunisation_RecordsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Immunisation_Records
-        exclude = ['date']
-
+    
+    def get_monthly_feed_purchases(self,obj):
+        year = obj.date.year
+        month = obj.date.month
+        start_date = date(year, month, 1)
+        if month == 12:
+            end_date = date(year + 1,1,1)
+        else:
+            end_date = date(year, month + 1,1)
+        purchases = Feed_Purchases.objects.filter(date__gte=start_date, date__lt=end_date)
+        total = purchases.aggregate(total_sales=Sum(ExpressionWrapper(F('quantity') * F('price_per_kg'),
+                                                                  output_field=DecimalField())))
+        return (total['total_sales'] or 0,year,month)
 
 class Veterinary_CareSerializer(serializers.ModelSerializer):
+    monthly_veterinary_cost = serializers.SerializerMethodField()
     class Meta:
         model = Veterinary_Care
-        fields = '__all__'
+        fields = ['cow','veterinary_cost','monthly_veterinary_cost']
 
+    def get_monthly_veterinary_cost(self,obj):
+        year = obj.date.year
+        month = obj.date.month
+        start_date = date(year, month, 1)
+        if month == 12:
+            end_date = date(year + 1,1,1)
+        else:
+            end_date = date(year, month + 1,1)
+        total = Veterinary_Care.objects.filter(date__gte=start_date, date__lt=end_date).aggregate(
+                total_cost=Sum('veterinary_cost'))
+        
+        return (total['total_cost'] or 0,year,month)
 
 class Birth_RecordsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Birth_Records
-        exclude = ['date']
-
-
-# class Profit_LossSerializer(serializers.ModelSerializer):
-#   milk_sales = serializers.SerializerMethodField()
-#   feeding_cost = serializers.SerializerMethodField()
-#   veterinary_care = serializers.SerializerMethodField()
-#   total_MilkSales = serializers.SerializerMethodField()
-#   class Meta:
-#     model = Milk_Sales
-#     fields = ['milk_sales',
-#               'feeding_cost',
-#               'veterinary_care',
-#               'total_MilkSales'
-#               ]
-    
-#     def get_milk_sales(self,obj):
-#         milk_sales = 0
-#         try:
-#             milksales = Milk_Sales.objects.all()
-#             for milksale in milksales:
-#                 milk_sales += milksale.litres*milksale.cost
-#             return milk_sales
-#         except:
-#             return milk_sales
-
-#     def get_feeding_cost(self,obj):
-#         feeding_cost = 0
-#         try:
-#             feedingcosts = Feed_Purchases.objects.all()
-#             for feedingcost in feedingcosts:
-#                 feeding_cost +=feedingcost.quantity*feedingcost.cost
-#             return feeding_cost
-#         except:
-#             return feeding_cost
-    
-#     def get_veterinary_care(self,obj):
-#         veterinary_care = 0
-#         try:
-#             cares = Veterinary_Care.objects.all()
-#             for care in cares:
-#                 veterinary_care +=care.quantity*care.cost
-#             return veterinary_care
-#         except:
-#             return veterinary_care
+        fields = '__all__'
   
 class MonthlyReportSerializer(serializers.ModelSerializer):
-    milk_sales = serializers.SerializerMethodField()
-    manure_sales = serializers.SerializerMethodField()
-    feed_purchase = serializers.SerializerMethodField()
+    milk_sales_total = serializers.SerializerMethodField()
+    manure_sales_total = serializers.SerializerMethodField()
+    feed_purchases_total = serializers.SerializerMethodField()
+    veterinary_care_total = serializers.SerializerMethodField()
+    total_income = serializers.SerializerMethodField()
+    total_expense = serializers.SerializerMethodField()
     net_profit = serializers.SerializerMethodField()
 
     class Meta:
-        model=MonthlyReport
-        field=['month','feed_purchases','veterinary_cost','milk_sales','manure_sales','net_profit']
+        model = MonthlyReport
+        fields = ['month','feed_purchases_total','veterinary_care_total','milk_sales_total','manure_sales_total',
+                  'total_income','total_expense','net_profit']
 
-    def get_milk_sales(self,obj):
-        milk_sale=Milk_Sales()
-        return milk_sale.get_monthly_sales(obj.month)
-
-    def get_manure_sales(self,obj):
-        manure_sale=Manure_Sales()
-        return manure_sale.get_monthly_sales(obj.month)
-    
-    def get_feed_purchases(self,obj):
-        feed_purchases=Feed_Purchases()
-        return feed_purchases.get_monthly_sales(obj.month)
-    
+    def get_milk_sales_total(self,obj):
+        return obj.milk_sales_total
+    def get_manure_sales_total(self,obj):
+        return obj.manure_sales_total
+    def get_feed_purchases_total(self,obj):
+        return obj.feed_purchases_total
+    def get_veterinary_care_total(self,obj):
+        return obj.veterinary_care_total
+    def get_total_income(self,obj):
+        return obj.total_income
+    def get_total_expense(self,obj):
+        return obj.total_expense
     def get_net_profit(self,obj):
-        milk_sales=self.get_milk_sales(obj)
-        manure_sales=self.get_manure_sales(obj)
-        return(milk_sales+manure_sales)-(obj.feed_purchases+obj.veterinary_cost)
-      
+        return obj.net_profit
