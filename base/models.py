@@ -29,7 +29,7 @@ class Breed_Table(models.Model):
 
 class Milking_Record(models.Model):
     cow = models.ForeignKey(Cow_Profile, on_delete=models.CASCADE)
-    liters = models.DecimalField(max_digits=7, decimal_places=2)
+    litres = models.DecimalField(max_digits=7, decimal_places=2)
     date = models.DateField(auto_now_add=True)
     OPTION_ONE = 'morning'
     OPTION_TWO = 'noon'
