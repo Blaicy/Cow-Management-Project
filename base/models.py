@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models import Sum, F, ExpressionWrapper,DecimalField
 from datetime import timedelta,date
 
-class Cow(models.Model):
+class Cow_Profile(models.Model):
     name = models.CharField(max_length=255)
     tag_Number = models.CharField(max_length=255, unique=True)
     age = models.PositiveIntegerField()
@@ -25,10 +25,10 @@ class Breed(models.Model):
 
 class Breed_Table(models.Model):
     breed = models.ForeignKey(Breed, on_delete=models.CASCADE)
-    cow = models.ForeignKey(Cow, on_delete=models.CASCADE)
+    cow = models.ForeignKey(Cow_Profile, on_delete=models.CASCADE)
 
 class Milking_Record(models.Model):
-    cow = models.ForeignKey(Cow, on_delete=models.CASCADE)
+    cow = models.ForeignKey(Cow_Profile, on_delete=models.CASCADE)
     liters = models.DecimalField(max_digits=7, decimal_places=2)
     date = models.DateField(auto_now_add=True)
     OPTION_ONE = 'morning'
@@ -54,7 +54,7 @@ class Feed(models.Model):
         return self.feed_type
 
 class Feeding_Record(models.Model):
-    cow = models.ForeignKey(Cow, on_delete=models.CASCADE)
+    cow = models.ForeignKey(Cow_Profile, on_delete=models.CASCADE)
     feed_type = models.ForeignKey(Feed, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=0)
     date = models.DateField(auto_now_add=True)
@@ -75,15 +75,15 @@ class Feed_Purchases(models.Model):
     price_per_kg = models.DecimalField(max_digits=7, decimal_places=2)
 
 class Veterinary_Care(models.Model):
-    cow = models.ForeignKey(Cow, on_delete=models.CASCADE)
+    cow = models.ForeignKey(Cow_Profile, on_delete=models.CASCADE)
     date = models.DateField(auto_now_add=True)
     veterinary_cost = models.DecimalField(max_digits=7, decimal_places=2)
 
 class Birth_Records(models.Model):
     cow = models.ForeignKey(
-        Cow, on_delete=models.CASCADE, related_name='mother')
+        Cow_Profile, on_delete=models.CASCADE, related_name='mother')
     date = models.DateField(auto_now_add=True)
-    calf = models.ForeignKey(Cow, on_delete=models.CASCADE)
+    calf = models.ForeignKey(Cow_Profile, on_delete=models.CASCADE)
 
 class Funfacts(models.Model):
     fact = models.CharField(max_length=255)
@@ -95,7 +95,7 @@ class Manure_Sales(models.Model):
     date = models.DateField(default=date.today)
 
 class Reproduction(models.Model):
-    cow = models.ForeignKey(Cow, on_delete=models.CASCADE)
+    cow = models.ForeignKey(Cow_Profile, on_delete=models.CASCADE)
     mating_records = models.DateField()
     gestation_period = models.IntegerField(default=0, help_text="Gestation period in days")
 

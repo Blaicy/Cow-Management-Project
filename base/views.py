@@ -1,7 +1,7 @@
 from django.shortcuts import render,redirect
-from .models import (Cow, Breed, Breed_Table, Milking_Record, Feeding_Record, Feed, Milk_Sales, Feed_Purchases,Reproduction,
+from .models import (Cow_Profile, Breed, Breed_Table, Milking_Record, Feeding_Record, Feed, Milk_Sales, Feed_Purchases,Reproduction,
                       Veterinary_Care,Birth_Records,Funfacts,Manure_Sales, MonthlyReport)
-from .serializers import (CowSerializer, BreedSerializer, Breed_TableSerializer, Milking_RecordSerializer, Feeding_RecordSerializer,
+from .serializers import (Cow_ProfileSerializer, BreedSerializer, Breed_TableSerializer, Milking_RecordSerializer, Feeding_RecordSerializer,
     Feed_PurchasesSerializer, Milk_SalesSerializer, FeedSerializer,Veterinary_CareSerializer, 
     Birth_RecordsSerializer, MonthlyReportSerializer, FunfactsSerializer, Manure_SalesSerializer,ReproductionSerializer)
 from rest_framework import generics
@@ -28,7 +28,7 @@ class ListCreateMonthlyReport(generics.ListCreateAPIView):
 def birthRecords(request):
   if request.method == "GET":
     breeds = Breed.objects.all()
-    cows = Cow.objects.all()
+    cows = Cow_Profile.objects.all()
     return render(request, 'birthRecords.html',{'cows':cows, 'breeds': breeds})
   if request.method == "POST":
     data ={'calf': request.POST['calf'],
@@ -38,15 +38,15 @@ def birthRecords(request):
                           'gender': request.POST['gender'],
                           'date': request.POST['date']
                          }
-    calf = Cow(name=request.POST['calf'],
+    calf = Cow_Profile(name=request.POST['calf'],
                tag_Number=request.POST['tag_Number'],
                weight=request.POST['weight'],
                gender=request.POST['gender'],
                age=1
                )
     calf.save()
-    calfhere = Cow.objects.get(id=calf.id)
-    mother = Cow.objects.get(id=request.POST['mother'])
+    calfhere = Cow_Profile.objects.get(id=calf.id)
+    mother = Cow_Profile.objects.get(id=request.POST['mother'])
     birthrecord = Birth_Records(cow=mother,date=request.POST['date'],calf=calfhere)
     breedRecord = Breed_Table(breed=request.POST['Breed'],cow=calfhere)
     breedRecord.save()
@@ -119,9 +119,9 @@ class ListCreateBreedTable(generics.ListCreateAPIView):
     serializer_class = Breed_TableSerializer
 
 
-class ListCreateCow(generics.ListCreateAPIView):
-    queryset = Cow.objects.all()
-    serializer_class = CowSerializer
+class ListCreateCow_Profile(generics.ListCreateAPIView):
+    queryset = Cow_Profile.objects.all()
+    serializer_class = Cow_ProfileSerializer
 
 
 class ListCreateFeed(generics.ListCreateAPIView):

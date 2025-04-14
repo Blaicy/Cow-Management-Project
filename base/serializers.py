@@ -1,4 +1,4 @@
-from .models import (Cow, Breed, Breed_Table, Milking_Record, Feeding_Record, Feed, Feed_Purchases,Funfacts,Reproduction,
+from .models import (Cow_Profile, Breed, Breed_Table, Milking_Record, Feeding_Record, Feed, Feed_Purchases,Funfacts,Reproduction,
                       Milk_Sales, Veterinary_Care, Birth_Records,Manure_Sales,MonthlyReport)
 
 from rest_framework import serializers
@@ -27,9 +27,9 @@ class FeedSerializer(serializers.ModelSerializer):
         model = Feed
         fields = '__all__'
 
-class CowSerializer(serializers.ModelSerializer):
+class Cow_ProfileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Cow
+        model = Cow_Profile
         fields = '__all__'
 
 class BreedSerializer(serializers.ModelSerializer):
