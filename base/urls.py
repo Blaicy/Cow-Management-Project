@@ -2,11 +2,12 @@ from django.urls import path
 from .views import (ListCreateCow_Profile, ListCreateBreed,
                     ListCreateBreedTable, ListCreateMilking_Record, ListCreateFeeding_Record,ListCreateFunfacts,
                     ListCreateFeed_Purchases, ListCreateFeed, ListCreateMilk_Sales, ListCreateVeterinary_Care, 
-                    ListCreateBirth_Records,birthRecords,ListCreateMonthlyReport,
+                    ListCreateBirth_Records,birthRecords,ListCreateMonthlyReport,DestroyAPIViewCow_Profile,aboutView,
                     ListCreateManure_Sales,ReproductionListCreateAPIView,DestroyAPIViewFunfacts,DestroyAPIViewMilk_Sales)
 
 urlpatterns = [
     path('Cow_Profile', ListCreateCow_Profile.as_view()),
+    path('<int:pk>/Cow_Profile/delete/',DestroyAPIViewCow_Profile.as_view()),
     path('Breed/', ListCreateBreed.as_view()),
     path('BreedTable/', ListCreateBreedTable.as_view()),
     path('Milking_Record/', ListCreateMilking_Record.as_view()),
@@ -23,5 +24,5 @@ urlpatterns = [
     path('<int:pk>/Funfacts/delete/',DestroyAPIViewFunfacts.as_view()),
     path('<int:pk>/Milk_Sales/delete/',DestroyAPIViewMilk_Sales.as_view()),
     path('Reproduction/', ReproductionListCreateAPIView.as_view()),
-    
+    path('AboutUs/',aboutView, name='aboutView'),
 ]

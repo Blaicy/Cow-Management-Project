@@ -1,10 +1,13 @@
 from .models import (Cow_Profile, Breed, Breed_Table, Milking_Record, Feeding_Record, Feed, Feed_Purchases,Funfacts,Reproduction,
-                      Milk_Sales, Veterinary_Care, Birth_Records,Manure_Sales,MonthlyReport)
+                      Milk_Sales, Veterinary_Care, Birth_Records,Manure_Sales,MonthlyReport, About_Us)
 
 from rest_framework import serializers
 from datetime import timedelta,date
 from django.shortcuts import get_object_or_404,redirect
 from django.db.models import Sum, F, ExpressionWrapper,DecimalField
+
+class About_UsSerializer(serializers.ModelSerializer):
+    fields = '__all__'
 
 class ReproductionSerializer(serializers.ModelSerializer):
     mating_records = serializers.SerializerMethodField() 

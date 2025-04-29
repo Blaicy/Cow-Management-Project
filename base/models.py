@@ -147,3 +147,9 @@ class MonthlyReport(models.Model):
     @property
     def net_profit(self):
         return self.total_income - self.total_expense
+
+class About_Us(models.Model):
+    title = models.CharField(max_length=100, default="About Us")
+    description = models.TextField()
+    our_vision = models.TextField()
+    

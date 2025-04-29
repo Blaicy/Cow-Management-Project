@@ -1,13 +1,22 @@
 from django.shortcuts import render,redirect
 from .models import (Cow_Profile, Breed, Breed_Table, Milking_Record, Feeding_Record, Feed, Milk_Sales, Feed_Purchases,Reproduction,
-                      Veterinary_Care,Birth_Records,Funfacts,Manure_Sales, MonthlyReport)
+                      Veterinary_Care,Birth_Records,Funfacts,Manure_Sales, MonthlyReport, About_Us)
 from .serializers import (Cow_ProfileSerializer, BreedSerializer, Breed_TableSerializer, Milking_RecordSerializer, Feeding_RecordSerializer,
-    Feed_PurchasesSerializer, Milk_SalesSerializer, FeedSerializer,Veterinary_CareSerializer, 
+    Feed_PurchasesSerializer, Milk_SalesSerializer, FeedSerializer,Veterinary_CareSerializer,
     Birth_RecordsSerializer, MonthlyReportSerializer, FunfactsSerializer, Manure_SalesSerializer,ReproductionSerializer)
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.response import Response
 from django.http import HttpResponse
+
+def aboutView(request):
+    about_section = About_Us.objects.filter(title="About Us").first(),
+    if not about_section:
+        return HttpResponse("Not found")(description="We are a small team of developers who are passionate about identifying and solving real-world problems. With a diverse set of skills and backgrounds, our focus is on simplicity,usability and impact.As a dedicated team of students and livestock enthusiasts, we have committed to transforming the way cattle are managed. Our cow management system was born out of a deep understanding of the challenges faced by farmers-from tracking health and nutrition to optimizing milk production and breed cycles. By creating our user-friendly platform,we believe technology can simplify and enhance everyday farm operations.Whether you're manaWe are a small team of developers who are passionate about identifying and solving real-world problems. With a diverse set of skills and backgrounds, our focus is on simplicity,usability and impact.As a dedicated team of students and livestock enthusiasts, we have committed to transforming the way cattle are managed. Our cow management system was born out of a deep understanding of the challenges faced by farmers-from tracking health and nutrition to optimizing milk production and breed cycles. By creating our user-friendly platform,we believe technology can simplify and enhance everyday farm operations.Whether you're managing a small dairy or a large-scale cattle farm, our system is designed to support your success.ging a small dairy or a large-scale cattle farm, our system is designed to support your success.",
+                                        our_vision="Our vision is to bridge the technology gap and provide a seamless digital platform to the cattle farmers across Kenya to empower them with actionable insights and connectivity")
+    return render(request, 'about.html',{'title': about_section.title},
+                                        {'description': about_section.description},
+                                        {'our_vision': about_section.our_vision})
 
 class ListCreateFunfacts(generics.ListCreateAPIView):
   queryset = Funfacts.objects.all()
@@ -120,6 +129,10 @@ class ListCreateBreedTable(generics.ListCreateAPIView):
 
 
 class ListCreateCow_Profile(generics.ListCreateAPIView):
+    queryset = Cow_Profile.objects.all()
+    serializer_class = Cow_ProfileSerializer
+
+class DestroyAPIViewCow_Profile(generics.DestroyAPIView):
     queryset = Cow_Profile.objects.all()
     serializer_class = Cow_ProfileSerializer
 
